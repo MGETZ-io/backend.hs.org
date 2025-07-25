@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BigTimeFM Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #1b2433;
+      color: white;
+    }
+    .container {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .box {
+      background: #212d42;
+      padding: 20px;
+      border-radius: 10px;
+      width: 100%;
+    }
+    h3 {
+      margin-top: 0;
+      color: #aad4ff;
+    }
+    .highlight {
+      font-weight: bold;
+    }
+    .deactivated {
+      color: red;
+      font-style: italic;
+    }
+    .gray {
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="box" id="statsBox">
+      <h3>🎧 Aktuelle Sendung</h3>
+      <p>🎙️ Aktueller DJ: <span id="dj" class="highlight">Lade...</span></p>
+      <p>📻 Thema: <span id="thema" class="highlight"></span></p>
+      <p>👥 Zuhörer: <span id="zuhoerer"></span></p>
+      <p>🎶 Songtitel: <span id="titel"></span></p>
+      <p>📈 Rekord: <span id="rekord"></span></p>
+      <p>📡 Bitrate: <span id="bitrate"></span></p>
+    </div>
+
+    <div class="box" id="statusBox">
+      <h3>📅 Status & Zeit</h3>
+      <p>🕒 <span id="datetime">Lade...</span></p>
+      <p>📨 Gruß- & Wunschbox: <span id="grussbox"></span></p>
+      <p>🎵 Musikwünsche: <span id="wunsch"></span></p>
+      <p>🎙️ Voicemails: <span id="voicemail"></span></p>
+      <p>📊 Umfragen: <span id="umfragen"></span></p>
+    </div>
+
+    <div class="box" id="planBox">
+      <h3>📅 Sendeplan</h3>
+      <div id="sendeplan">Wird geladen...</div>
+    </div>
+  </div>
+
+  <script>
+    async function loadData() {
+      // 1. Allgemeine Infos
+      const resStats = await fetch("https://backend.bigtimefm.de/includes/data/fetch_stats.php?radioinfos");
+      const stats = await resStats.json();
+
+      document.getElementById("dj").textContent = stats.dj || "Unbekannt";
+      document.getElementById("thema").textContent = stats.sendung || "–";
+      document.getElementById("zuhoerer").textContent = stats.listener + " Zuhörer";
+      document.getElementById("titel").textContent = stats.song || "–";
+      document.getElementById("rekord").textContent = stats.listener_max + " Zuhörer";
+      document.getElementById("bitrate").textContent = stats.bitrate + " kbps";
+
+      // 2. Status
+      const resStatus = await fetch("https://backend.bigtimefm.de/includes/data/fetch_stats.php?djstatus");
+      const status = await resStatus.json();
+
+      document.getElementById("datetime").textContent = status.zeit || "Unbekannt";
+      document.getElementById("grussbox").innerHTML = status.grussbox === "aktiv"
+        ? "<span class='highlight'>aktiv</span>"
+        : "<span class='deactivated'>deaktiviert</span>";
+      document.getElementById("wunsch").innerHTML = status.wunschbox === "aktiv"
+        ? "<span class='highlight'>aktiv</span>"
+        : "<span class='gray'>deaktiviert</span>";
+      document.getElementById("voicemail").innerHTML = status.voicemail === "aktiv"
+        ? "<span class='highlight'>aktiv</span>"
+        : "<span class='gray'>deaktiviert</span>";
+      document.getElementById("umfragen").innerHTML = status.umfrage === "aktiv"
+        ? "<span class='highlight'>aktiv</span>"
+        : "<span class='gray'>deaktiviert</span>";
+
+      // 3. Sendeplan
+      const resPlan = await fetch("https://backend.bigtimefm.de/includes/data/fetch_stats.php?sendeplan");
+      const plan = await resPlan.json();
+
+      const sendeplanDiv = document.getElementById("sendeplan");
+      sendeplanDiv.innerHTML = "";
+      plan.forEach(block => {
+        const p = document.createElement("p");
+        p.innerHTML = `<strong>${block.von} - ${block.bis} Uhr</strong><br>${block.dj}<br><span class="gray">${block.sendung}</span>`;
+        sendeplanDiv.appendChild(p);
+      });
+    }
+
+    loadData();
+    setInterval(loadData, 30 * 1000); // Alle 30 Sekunden neu laden
+  </script>
+</body>
+</html>
