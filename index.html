@@ -3,141 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BigTimeFM Dashboard</title>
+  <title>BigTimeFM Direkt-Ansicht</title>
   <style>
     body {
-      margin: 0;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-      background-color: #111c2e;
+      background-color: #0d1117;
       color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #66ccff;
     }
 
     .container {
       display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
+      flex-direction: column;
+      gap: 30px;
     }
 
-    .box {
-      background-color: #1c2a41;
-      padding: 20px;
-      border-radius: 10px;
-      flex: 1;
-      min-width: 300px;
-    }
-
-    h2 {
-      color: #66ccff;
-      margin-top: 0;
-    }
-
-    .highlight {
-      color: #ffffff;
-      font-weight: bold;
-    }
-
-    .inactive {
-      color: red;
-    }
-
-    .gray {
-      color: #999;
+    iframe {
+      width: 100%;
+      height: 300px;
+      border: 2px solid #222;
+      border-radius: 8px;
+      background: #fff;
     }
   </style>
 </head>
 <body>
 
-  <h1>🎧 BigTimeFM Dashboard</h1>
+  <h1>📡 BigTimeFM Datenanzeige (iFrame-Version)</h1>
+
   <div class="container">
-    <div class="box">
-      <h2>Aktuelle Sendung</h2>
-      <p>🎙️ DJ: <span id="dj">–</span></p>
-      <p>🎵 Titel: <span id="titel">–</span></p>
-      <p>📻 Sendung: <span id="sendung">–</span></p>
-      <p>👥 Zuhörer: <span id="listener">–</span></p>
-      <p>📈 Rekord: <span id="rekord">–</span></p>
-      <p>📡 Bitrate: <span id="bitrate">–</span></p>
+    <div>
+      <h2>🎧 Aktueller DJ & Song</h2>
+      <iframe src="https://backend.bigtimefm.de/includes/data/fetch_stats.php?radioinfos"></iframe>
     </div>
 
-    <div class="box">
-      <h2>Status & Uhrzeit</h2>
-      <p>🕒 Zeit: <span id="zeit">–</span></p>
-      <p>📨 Grußbox: <span id="grussbox">–</span></p>
-      <p>🎧 Wunschbox: <span id="wunschbox">–</span></p>
-      <p>🎙️ Voicemail: <span id="voicemail">–</span></p>
-      <p>📊 Umfragen: <span id="umfrage">–</span></p>
+    <div>
+      <h2>🕒 Grußbox, Uhrzeit & Status</h2>
+      <iframe src="https://backend.bigtimefm.de/includes/data/fetch_stats.php?djstatus"></iframe>
     </div>
 
-    <div class="box">
-      <h2>Sendeplan</h2>
-      <div id="sendeplan">Wird geladen...</div>
+    <div>
+      <h2>📅 Sendeplan</h2>
+      <iframe src="https://backend.bigtimefm.de/includes/data/fetch_stats.php?sendeplan"></iframe>
     </div>
   </div>
 
-  <script>
-    // Deine drei URLs:
-    const URL_RADIOINFOS = "https://backend.bigtimefm.de/includes/data/fetch_stats.php?radioinfos";
-    const URL_DJSTATUS = "https://backend.bigtimefm.de/includes/data/fetch_stats.php?djstatus";
-    const URL_SENDEPLAN = "https://backend.bigtimefm.de/includes/data/fetch_stats.php?sendeplan";
-
-    async function fetchJson(url) {
-      try {
-        const res = await fetch(url);
-        const text = await res.text();
-        return JSON.parse(text);
-      } catch (e) {
-        console.error("Fehler bei", url, e);
-        return null;
-      }
-    }
-
-    function aktivStatus(wert) {
-      return wert === "aktiv"
-        ? "<span class='highlight'>aktiv</span>"
-        : "<span class='inactive'>deaktiviert</span>";
-    }
-
-    async function updateDashboard() {
-      const stats = await fetchJson(URL_RADIOINFOS);
-      if (stats) {
-        document.getElementById("dj").textContent = stats.dj || "–";
-        document.getElementById("titel").textContent = stats.song || "–";
-        document.getElementById("sendung").textContent = stats.sendung || "–";
-        document.getElementById("listener").textContent = stats.listener || "–";
-        document.getElementById("rekord").textContent = stats.listener_max || "–";
-        document.getElementById("bitrate").textContent = stats.bitrate + " kbps" || "–";
-      }
-
-      const status = await fetchJson(URL_DJSTATUS);
-      if (status) {
-        document.getElementById("zeit").textContent = status.zeit || "–";
-        document.getElementById("grussbox").innerHTML = aktivStatus(status.grussbox);
-        document.getElementById("wunschbox").innerHTML = aktivStatus(status.wunschbox);
-        document.getElementById("voicemail").innerHTML = aktivStatus(status.voicemail);
-        document.getElementById("umfrage").innerHTML = aktivStatus(status.umfrage);
-      }
-
-      const plan = await fetchJson(URL_SENDEPLAN);
-      const sendeplanDiv = document.getElementById("sendeplan");
-      sendeplanDiv.innerHTML = "";
-
-      if (plan && Array.isArray(plan)) {
-        plan.forEach(block => {
-          sendeplanDiv.innerHTML += `
-            <p>
-              <strong>${block.von} – ${block.bis} Uhr</strong><br/>
-              <span class="highlight">${block.dj}</span><br/>
-              <span class="gray">${block.sendung}</span>
-            </p>`;
-        });
-      } else {
-        sendeplanDiv.innerHTML = "<em>Keine Daten verfügbar.</em>";
-      }
-    }
-
-    updateDashboard();
-    setInterval(updateDashboard, 30 * 1000); // Alle 30 Sekunden neu laden
-  </script>
 </body>
 </html>
