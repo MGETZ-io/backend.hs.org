@@ -1,62 +1,143 @@
-<script>
-  async function loadData() {
-    try {
-      // 1. Allgemeine Infos
-      const resStats = await fetch("https://backend.bigtimefm.de/includes/data/fetch_stats.php?radioinfos");
-      const textStats = await resStats.text();
-      const stats = JSON.parse(textStats); // Falls es doch JSON ist
-
-      document.getElementById("dj").textContent = stats.dj || "Unbekannt";
-      document.getElementById("thema").textContent = stats.sendung || "–";
-      document.getElementById("zuhoerer").textContent = stats.listener + " Zuhörer";
-      document.getElementById("titel").textContent = stats.song || "–";
-      document.getElementById("rekord").textContent = stats.listener_max + " Zuhörer";
-      document.getElementById("bitrate").textContent = stats.bitrate + " kbps";
-    } catch (err) {
-      console.error("Fehler beim Laden von radioinfos:", err);
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BigTimeFM Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #111c2e;
+      color: #fff;
     }
 
-    try {
-      // 2. DJ-Status
-      const resStatus = await fetch("https://backend.bigtimefm.de/includes/data/fetch_stats.php?djstatus");
-      const textStatus = await resStatus.text();
-      const status = JSON.parse(textStatus);
-
-      document.getElementById("datetime").textContent = status.zeit || "Unbekannt";
-      document.getElementById("grussbox").innerHTML = status.grussbox === "aktiv"
-        ? "<span class='highlight'>aktiv</span>"
-        : "<span class='deactivated'>deaktiviert</span>";
-      document.getElementById("wunsch").innerHTML = status.wunschbox === "aktiv"
-        ? "<span class='highlight'>aktiv</span>"
-        : "<span class='gray'>deaktiviert</span>";
-      document.getElementById("voicemail").innerHTML = status.voicemail === "aktiv"
-        ? "<span class='highlight'>aktiv</span>"
-        : "<span class='gray'>deaktiviert</span>";
-      document.getElementById("umfragen").innerHTML = status.umfrage === "aktiv"
-        ? "<span class='highlight'>aktiv</span>"
-        : "<span class='gray'>deaktiviert</span>";
-    } catch (err) {
-      console.error("Fehler beim Laden von djstatus:", err);
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
     }
 
-    try {
-      // 3. Sendeplan
-      const resPlan = await fetch("https://backend.bigtimefm.de/includes/data/fetch_stats.php?sendeplan");
-      const textPlan = await resPlan.text();
-      const plan = JSON.parse(textPlan);
+    .box {
+      background-color: #1c2a41;
+      padding: 20px;
+      border-radius: 10px;
+      flex: 1;
+      min-width: 300px;
+    }
 
+    h2 {
+      color: #66ccff;
+      margin-top: 0;
+    }
+
+    .highlight {
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .inactive {
+      color: red;
+    }
+
+    .gray {
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎧 BigTimeFM Dashboard</h1>
+  <div class="container">
+    <div class="box">
+      <h2>Aktuelle Sendung</h2>
+      <p>🎙️ DJ: <span id="dj">–</span></p>
+      <p>🎵 Titel: <span id="titel">–</span></p>
+      <p>📻 Sendung: <span id="sendung">–</span></p>
+      <p>👥 Zuhörer: <span id="listener">–</span></p>
+      <p>📈 Rekord: <span id="rekord">–</span></p>
+      <p>📡 Bitrate: <span id="bitrate">–</span></p>
+    </div>
+
+    <div class="box">
+      <h2>Status & Uhrzeit</h2>
+      <p>🕒 Zeit: <span id="zeit">–</span></p>
+      <p>📨 Grußbox: <span id="grussbox">–</span></p>
+      <p>🎧 Wunschbox: <span id="wunschbox">–</span></p>
+      <p>🎙️ Voicemail: <span id="voicemail">–</span></p>
+      <p>📊 Umfragen: <span id="umfrage">–</span></p>
+    </div>
+
+    <div class="box">
+      <h2>Sendeplan</h2>
+      <div id="sendeplan">Wird geladen...</div>
+    </div>
+  </div>
+
+  <script>
+    // Deine drei URLs:
+    const URL_RADIOINFOS = "https://backend.bigtimefm.de/includes/data/fetch_stats.php?radioinfos";
+    const URL_DJSTATUS = "https://backend.bigtimefm.de/includes/data/fetch_stats.php?djstatus";
+    const URL_SENDEPLAN = "https://backend.bigtimefm.de/includes/data/fetch_stats.php?sendeplan";
+
+    async function fetchJson(url) {
+      try {
+        const res = await fetch(url);
+        const text = await res.text();
+        return JSON.parse(text);
+      } catch (e) {
+        console.error("Fehler bei", url, e);
+        return null;
+      }
+    }
+
+    function aktivStatus(wert) {
+      return wert === "aktiv"
+        ? "<span class='highlight'>aktiv</span>"
+        : "<span class='inactive'>deaktiviert</span>";
+    }
+
+    async function updateDashboard() {
+      const stats = await fetchJson(URL_RADIOINFOS);
+      if (stats) {
+        document.getElementById("dj").textContent = stats.dj || "–";
+        document.getElementById("titel").textContent = stats.song || "–";
+        document.getElementById("sendung").textContent = stats.sendung || "–";
+        document.getElementById("listener").textContent = stats.listener || "–";
+        document.getElementById("rekord").textContent = stats.listener_max || "–";
+        document.getElementById("bitrate").textContent = stats.bitrate + " kbps" || "–";
+      }
+
+      const status = await fetchJson(URL_DJSTATUS);
+      if (status) {
+        document.getElementById("zeit").textContent = status.zeit || "–";
+        document.getElementById("grussbox").innerHTML = aktivStatus(status.grussbox);
+        document.getElementById("wunschbox").innerHTML = aktivStatus(status.wunschbox);
+        document.getElementById("voicemail").innerHTML = aktivStatus(status.voicemail);
+        document.getElementById("umfrage").innerHTML = aktivStatus(status.umfrage);
+      }
+
+      const plan = await fetchJson(URL_SENDEPLAN);
       const sendeplanDiv = document.getElementById("sendeplan");
       sendeplanDiv.innerHTML = "";
-      plan.forEach(block => {
-        const p = document.createElement("p");
-        p.innerHTML = `<strong>${block.von} - ${block.bis} Uhr</strong><br>${block.dj}<br><span class="gray">${block.sendung}</span>`;
-        sendeplanDiv.appendChild(p);
-      });
-    } catch (err) {
-      console.error("Fehler beim Laden vom Sendeplan:", err);
-    }
-  }
 
-  loadData();
-  setInterval(loadData, 30 * 1000);
-</script>
+      if (plan && Array.isArray(plan)) {
+        plan.forEach(block => {
+          sendeplanDiv.innerHTML += `
+            <p>
+              <strong>${block.von} – ${block.bis} Uhr</strong><br/>
+              <span class="highlight">${block.dj}</span><br/>
+              <span class="gray">${block.sendung}</span>
+            </p>`;
+        });
+      } else {
+        sendeplanDiv.innerHTML = "<em>Keine Daten verfügbar.</em>";
+      }
+    }
+
+    updateDashboard();
+    setInterval(updateDashboard, 30 * 1000); // Alle 30 Sekunden neu laden
+  </script>
+</body>
+</html>
