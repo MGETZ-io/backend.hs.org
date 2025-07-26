@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>BigTimeFM Live-Status</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #f1f1f1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+    }
+    .card {
+      background: #1e1e1e;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #000;
+      width: 90%;
+      max-width: 500px;
+    }
+    h1 {
+      color: #ff7f00;
+    }
+    .info {
+      margin: 10px 0;
+      font-size: 1.2em;
+    }
+    .label {
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🎧 BigTimeFM Live</h1>
+    <div class="info"><span class="label">📻 Sendethema:</span> <span id="broadcast_title">Lade...</span></div>
+    <div class="info"><span class="label">👤 Aktueller DJ:</span> <span id="currentdj">Lade...</span></div>
+    <div class="info"><span class="label">🎵 Aktueller Song:</span> <span id="songtitle">Lade...</span></div>
+  </div>
+
+  <script>
+    function fetchRadioInfo() {
+      fetch('https://backend.bigtimefm.de/api/index.php?output=radiostatus')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('broadcast_title').textContent = data.broadcast_title || 'Keine Angabe';
+          document.getElementById('currentdj').textContent = data.currentdj || 'Unbekannt';
+          document.getElementById('songtitle').textContent = data.songtitle || 'Nicht verfügbar';
+        })
+        .catch(error => {
+          console.error('Fehler beim Abrufen der Radio-Infos:', error);
+          document.getElementById('broadcast_title').textContent = 'Fehler beim Laden';
+          document.getElementById('currentdj').textContent = 'Fehler';
+          document.getElementById('songtitle').textContent = 'Fehler';
+        });
+    }
+
+    // Initialer Abruf
+    fetchRadioInfo();
+
+    // Wiederhole alle 30 Sekunden (30.000 Millisekunden)
+    setInterval(fetchRadioInfo, 30000);
+  </script>
+
+</body>
+</html>
