@@ -2,68 +2,164 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>BigTimeFM Live-Status</title>
+  <title>BigTimeFM – Live & Sendeplan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    :root {
+      --bg: #111;
+      --card: #1e1e1e;
+      --accent: #ff7f00;
+      --text: #f1f1f1;
+      --muted: #aaa;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #111;
-      color: #f1f1f1;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 30px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 50px;
     }
+
+    .container {
+      width: 100%;
+      max-width: 700px;
+    }
+
     .card {
-      background: #1e1e1e;
-      padding: 20px 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px #000;
-      width: 90%;
-      max-width: 500px;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 25px 30px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      margin-bottom: 30px;
     }
+
     h1 {
-      color: #ff7f00;
+      color: var(--accent);
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      text-align: center;
     }
-    .info {
+
+    .info, .entry {
       margin: 10px 0;
-      font-size: 1.2em;
     }
+
     .label {
-      color: #aaa;
+      color: var(--muted);
+      display: inline-block;
+      min-width: 140px;
+    }
+
+    .value {
+      font-weight: 500;
+    }
+
+    .entry {
+      border-bottom: 1px solid #333;
+      padding: 10px 0;
+    }
+
+    .entry:last-child {
+      border-bottom: none;
+    }
+
+    .time {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .title {
+      font-size: 1.1em;
+      margin-top: 4px;
+    }
+
+    .moderator {
+      font-size: 0.9em;
+      color: var(--muted);
+    }
+
+    @media(max-width: 500px) {
+      .label { min-width: auto; display: block; }
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h1>🎧 BigTimeFM Live</h1>
-    <div class="info"><span class="label">📻 Sendethema:</span> <span id="broadcast_title">Lade...</span></div>
-    <div class="info"><span class="label">👤 Aktueller DJ:</span> <span id="currentdj">Lade...</span></div>
-    <div class="info"><span class="label">🎵 Aktueller Song:</span> <span id="songtitle">Lade...</span></div>
+  <div class="container">
+
+    <!-- Live-Status -->
+    <div class="card" id="livestatus">
+      <h1>🎧 BigTimeFM Live</h1>
+      <div class="info"><span class="label">📻 Sendethema:</span> <span class="value" id="broadcast_title">Lade...</span></div>
+      <div class="info"><span class="label">👤 Aktueller DJ:</span> <span class="value" id="currentdj">Lade...</span></div>
+      <div class="info"><span class="label">🎵 Aktueller Song:</span> <span class="value" id="songtitle">Lade...</span></div>
+    </div>
+
+    <!-- Sendeplan -->
+    <div class="card" id="sendeplan_card">
+      <h1>📅 Heutiger Sendeplan</h1>
+      <div id="sendeplan">Lade...</div>
+    </div>
+
   </div>
 
   <script>
-    function fetchRadioInfo() {
+    function fetchLiveInfo() {
       fetch('https://backend.bigtimefm.de/api/index.php?output=radiostatus')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
           document.getElementById('broadcast_title').textContent = data.broadcast_title || 'Keine Angabe';
           document.getElementById('currentdj').textContent = data.currentdj || 'Unbekannt';
           document.getElementById('songtitle').textContent = data.songtitle || 'Nicht verfügbar';
         })
-        .catch(error => {
-          console.error('Fehler beim Abrufen der Radio-Infos:', error);
-          document.getElementById('broadcast_title').textContent = 'Fehler beim Laden';
+        .catch(() => {
+          document.getElementById('broadcast_title').textContent = 'Fehler';
           document.getElementById('currentdj').textContent = 'Fehler';
           document.getElementById('songtitle').textContent = 'Fehler';
         });
     }
 
-    // Initialer Abruf
-    fetchRadioInfo();
+    function fetchSendeplan() {
+      fetch('https://backend.bigtimefm.de/api/index.php?output=sendeplan')
+        .then(res => res.json())
+        .then(data => {
+          const today = new Date().toLocaleDateString('de-DE');
+          const sendeplanDiv = document.getElementById('sendeplan');
+          sendeplanDiv.innerHTML = '';
 
-    // Wiederhole alle 30 Sekunden (30.000 Millisekunden)
-    setInterval(fetchRadioInfo, 30000);
+          const todaysShows = data.filter(entry => entry.date === today);
+
+          if (todaysShows.length === 0) {
+            sendeplanDiv.innerHTML = '<p>Keine Sendungen für heute.</p>';
+            return;
+          }
+
+          todaysShows.forEach(show => {
+            const el = document.createElement('div');
+            el.className = 'entry';
+            el.innerHTML = `
+              <div class="time">${show.start} – ${show.end}</div>
+              <div class="title">${show.broadcast_title}</div>
+              <div class="moderator">mit ${show.moderator}</div>
+            `;
+            sendeplanDiv.appendChild(el);
+          });
+        })
+        .catch(() => {
+          document.getElementById('sendeplan').innerHTML = '<p>Fehler beim Laden des Sendeplans.</p>';
+        });
+    }
+
+    // Initiale Abrufe
+    fetchLiveInfo();
+    fetchSendeplan();
+
+    // Wiederhole den Live-Status alle 30 Sekunden
+    setInterval(fetchLiveInfo, 30000);
   </script>
 
 </body>
