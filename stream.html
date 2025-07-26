@@ -152,14 +152,14 @@
   </div>
 
   <script>
-    // Prüfe, ob URL-Parameter key=2956 vorhanden ist
+    // URL-Parameter prüfen, ob ?key=2956 vorhanden
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('key') === '2956') {
-      // Zeige eigentlichen Inhalt, verstecke 404
+      // Inhalte anzeigen, 404 verstecken
       document.getElementById('app').style.display = 'block';
       document.getElementById('forbidden').style.display = 'none';
 
-      // Funktion: Lade Live-Status
+      // Live-Radio-Status laden
       function fetchLiveRadioStatus() {
         fetch('https://backend.bigtimefm.de/api/index.php?output=radiostatus')
           .then(res => res.json())
@@ -175,7 +175,7 @@
           });
       }
 
-      // Funktion: Lade heutige / nächste Sendung aus Sendeplan
+      // Sendeplan heute / nächste Sendung laden
       function fetchAktuellerSlot() {
         fetch('https://backend.bigtimefm.de/api/index.php?output=sendeplan')
           .then(res => res.json())
@@ -189,6 +189,7 @@
             }
 
             const now = new Date();
+            // Filter für heutige Slots
             const heuteSlots = data.filter(slot => {
               const [startH, startM] = slot.start.split(':').map(Number);
               const slotDate = new Date(now);
@@ -196,6 +197,7 @@
               return slotDate.toDateString() === now.toDateString();
             });
 
+            // Nächster oder erster Slot
             const slot = heuteSlots.length > 0 ? heuteSlots[0] : data[0];
 
             if (!slot) {
@@ -232,24 +234,11 @@
           });
       }
 
-      // Funktion: Tracklist laden
+      // Tracklist als HTML laden und einfügen
       function fetchTracklist() {
-        fetch('https://backend.bigtimefm.de/api/index.php?output=lastplayed')
-          .then(res => res.json())
-          .then(data => {
-            if (!Array.isArray(data)) {
-              document.getElementById('tracklist').textContent = 'Keine Tracklist verfügbar.';
-              return;
-            }
-            let html = '<table><thead><tr><th>Datum</th><th>Interpret</th><th>Titel</th></tr></thead><tbody>';
-            data.forEach(track => {
-              html += `<tr>
-                <td>${track.datetime || ''}</td>
-                <td>${track.artist || ''}</td>
-                <td>${track.title || ''}</td>
-              </tr>`;
-            });
-            html += '</tbody></table>';
+        fetch('https://backend.bigtimefm.de/api/tracklist.php')
+          .then(res => res.text())
+          .then(html => {
             document.getElementById('tracklist').innerHTML = html;
           })
           .catch(() => {
@@ -262,7 +251,7 @@
       fetchAktuellerSlot();
       fetchTracklist();
 
-      // Alle 60 Sekunden aktualisieren
+      // Aktualisierung alle 60 Sekunden
       setInterval(() => {
         fetchLiveRadioStatus();
         fetchAktuellerSlot();
@@ -270,9 +259,9 @@
       }, 60000);
 
     } else {
-      // 404 anzeigen, wenn key falsch oder nicht vorhanden
-      document.getElementById('forbidden').style.display = 'block';
+      // Falscher oder kein key: 404 anzeigen, Inhalte verstecken
       document.getElementById('app').style.display = 'none';
+      document.getElementById('forbidden').style.display = 'block';
     }
   </script>
 </body>
