@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>BigTimeFM – Live & Sendeplan</title>
+  <title>BigTimeFM – Jetzt live</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -44,7 +44,7 @@
       text-align: center;
     }
 
-    .info, .entry {
+    .info {
       margin: 10px 0;
     }
 
@@ -58,28 +58,20 @@
       font-weight: 500;
     }
 
-    .entry {
-      border-bottom: 1px solid #333;
-      padding: 10px 0;
-    }
-
-    .entry:last-child {
-      border-bottom: none;
-    }
-
-    .time {
-      color: var(--accent);
+    .live-banner {
+      background: var(--accent);
+      color: #000;
       font-weight: bold;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 12px;
     }
 
-    .title {
-      font-size: 1.1em;
-      margin-top: 4px;
-    }
-
-    .moderator {
-      font-size: 0.9em;
-      color: var(--muted);
+    audio {
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 8px;
     }
 
     @media(max-width: 500px) {
@@ -91,24 +83,36 @@
 
   <div class="container">
 
-    <!-- Live-Status -->
-    <div class="card" id="livestatus">
-      <h1>🎧 BigTimeFM Live</h1>
+    <!-- Live-Radio Infos -->
+    <div class="card">
+      <h1>🎧 Live-Status</h1>
       <div class="info"><span class="label">📻 Sendethema:</span> <span class="value" id="broadcast_title">Lade...</span></div>
       <div class="info"><span class="label">👤 Aktueller DJ:</span> <span class="value" id="currentdj">Lade...</span></div>
       <div class="info"><span class="label">🎵 Aktueller Song:</span> <span class="value" id="songtitle">Lade...</span></div>
     </div>
 
-    <!-- Sendeplan -->
-    <div class="card" id="sendeplan_card">
-      <h1>📅 Heutiger Sendeplan</h1>
-      <div id="sendeplan">Lade...</div>
+    <!-- Geplanter Slot -->
+    <div class="card">
+      <h1>📅 Sendeplan (Jetzt/Nächste)</h1>
+      <div id="livebanner" style="display:none;" class="live-banner">🔴 Jetzt LIVE ON AIR – BIGTIMEFM</div>
+      <div class="info"><span class="label">🕒 Zeit:</span> <span class="value" id="slot_time">Lade...</span></div>
+      <div class="info"><span class="label">📻 Titel:</span> <span class="value" id="slot_title">Lade...</span></div>
+      <div class="info"><span class="label">🎙️ DJ:</span> <span class="value" id="slot_dj">Lade...</span></div>
+    </div>
+
+    <!-- Audio-Player -->
+    <div class="card">
+      <h1>📡 Live-Stream</h1>
+      <audio controls autoplay>
+        <source src="https://stream.bigtimefm.de/stream.mp3" type="audio/mpeg">
+        Dein Browser unterstützt kein HTML5-Audio.
+      </audio>
     </div>
 
   </div>
 
   <script>
-    function fetchLiveInfo() {
+    function fetchLiveRadioStatus() {
       fetch('https://backend.bigtimefm.de/api/index.php?output=radiostatus')
         .then(res => res.json())
         .then(data => {
@@ -123,44 +127,54 @@
         });
     }
 
-    function fetchSendeplan() {
+    function fetchAktuellerSlot() {
       fetch('https://backend.bigtimefm.de/api/index.php?output=sendeplan')
         .then(res => res.json())
         .then(data => {
-          const today = new Date().toLocaleDateString('de-DE');
-          const sendeplanDiv = document.getElementById('sendeplan');
-          sendeplanDiv.innerHTML = '';
-
-          const todaysShows = data.filter(entry => entry.date === today);
-
-          if (todaysShows.length === 0) {
-            sendeplanDiv.innerHTML = '<p>Keine Sendungen für heute.</p>';
+          if (!Array.isArray(data) || data.length === 0) {
+            document.getElementById('slot_time').textContent = 'Keine Daten';
+            document.getElementById('slot_title').textContent = 'Keine Daten';
+            document.getElementById('slot_dj').textContent = 'Keine Daten';
             return;
           }
 
-          todaysShows.forEach(show => {
-            const el = document.createElement('div');
-            el.className = 'entry';
-            el.innerHTML = `
-              <div class="time">${show.start} – ${show.end}</div>
-              <div class="title">${show.broadcast_title}</div>
-              <div class="moderator">mit ${show.moderator}</div>
-            `;
-            sendeplanDiv.appendChild(el);
-          });
+          const slot = data[0]; // nur 1 Slot wird zurückgegeben
+          const now = new Date();
+          const [startH, startM] = slot.start.split(':').map(Number);
+          const [endH, endM] = slot.ende.split(':').map(Number);
+
+          const startTime = new Date(now);
+          startTime.setHours(startH, startM, 0, 0);
+
+          const endTime = new Date(now);
+          endTime.setHours(endH, endM, 0, 0);
+
+          const isLive = now >= startTime && now <= endTime;
+
+          document.getElementById('slot_time').textContent = `${slot.start} – ${slot.ende}`;
+          document.getElementById('slot_title').textContent = slot.titel || 'Unbekannt';
+          document.getElementById('slot_dj').textContent = slot.dj || 'Unbekannt';
+          document.getElementById('livebanner').style.display = isLive ? 'inline-block' : 'none';
         })
         .catch(() => {
-          document.getElementById('sendeplan').innerHTML = '<p>Fehler beim Laden des Sendeplans.</p>';
+          document.getElementById('slot_time').textContent = 'Fehler';
+          document.getElementById('slot_title').textContent = 'Fehler';
+          document.getElementById('slot_dj').textContent = 'Fehler';
+          document.getElementById('livebanner').style.display = 'none';
         });
     }
 
-    // Initiale Abrufe
-    fetchLiveInfo();
-    fetchSendeplan();
+    // Initiale Ladung
+    fetchLiveRadioStatus();
+    fetchAktuellerSlot();
 
-    // Wiederhole den Live-Status alle 30 Sekunden
-    setInterval(fetchLiveInfo, 30000);
+    // Aktualisiere alle 30 Sekunden
+    setInterval(() => {
+      fetchLiveRadioStatus();
+      fetchAktuellerSlot();
+    }, 30000);
   </script>
 
 </body>
 </html>
+
