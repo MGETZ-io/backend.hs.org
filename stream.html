@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>BigTimeFM – Jetzt live</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
 
   <!-- BigTimeFM Default CSS -->
   <link rel="stylesheet" href="https://bigtimefm.de/assets/default.css?v=1.63" />
@@ -20,34 +23,41 @@
 </head>
 <body>
 
-  <div id="content" class="container">
+  <div class="container my-4">
 
-    <h1>🎧 Live-Status</h1>
-    <dl class="dt-list">
-      <dt>📻 Sendethema:</dt>
-      <dd id="broadcast_title">Lade...</dd>
-      <dt>👤 Aktueller DJ:</dt>
-      <dd id="currentdj">Lade...</dd>
-      <dt>🎵 Aktueller Song:</dt>
-      <dd id="songtitle">Lade...</dd>
+    <h1 class="mb-4">🎧 Live-Status</h1>
+    <dl class="row">
+      <dt class="col-sm-3">📻 Sendethema:</dt>
+      <dd class="col-sm-9" id="broadcast_title">Lade...</dd>
+
+      <dt class="col-sm-3">👤 Aktueller DJ:</dt>
+      <dd class="col-sm-9" id="currentdj">Lade...</dd>
+
+      <dt class="col-sm-3">🎵 Aktueller Song:</dt>
+      <dd class="col-sm-9" id="songtitle">Lade...</dd>
     </dl>
 
-    <h1>📅 Sendeplan (Jetzt/Nächste)</h1>
-    <div id="livebanner" class="live" style="display:none;">🔴 Jetzt LIVE ON AIR – BIGTIMEFM</div>
-    <dl class="dt-list">
-      <dt>🕒 Zeit:</dt>
-      <dd id="slot_time">Lade...</dd>
-      <dt>📻 Titel:</dt>
-      <dd id="slot_title">Lade...</dd>
-      <dt>🎙️ DJ:</dt>
-      <dd id="slot_dj">Lade...</dd>
+    <h1 class="mt-5 mb-4">📅 Sendeplan (Jetzt/Nächste)</h1>
+    <div id="livebanner" class="alert alert-danger font-weight-bold text-center" style="display:none;">
+      🔴 Jetzt LIVE ON AIR – BIGTIMEFM
+    </div>
+
+    <dl class="row">
+      <dt class="col-sm-3">🕒 Zeit:</dt>
+      <dd class="col-sm-9" id="slot_time">Lade...</dd>
+
+      <dt class="col-sm-3">📻 Titel:</dt>
+      <dd class="col-sm-9" id="slot_title">Lade...</dd>
+
+      <dt class="col-sm-3">🎙️ DJ:</dt>
+      <dd class="col-sm-9" id="slot_dj">Lade...</dd>
     </dl>
 
     <!-- Bild wird ausgeblendet -->
     <!-- <img src="https://backend.bigtimefm.de/api/?output=coverimg" class="sendeplan-image" alt="Coverbild" /> -->
 
-    <h1>📡 Live-Stream</h1>
-    <audio controls autoplay>
+    <h1 class="mt-5 mb-4">📡 Live-Stream</h1>
+    <audio controls autoplay class="w-100">
       <source src="https://stream.bigtimefm.de/stream.mp3" type="audio/mpeg" />
       Dein Browser unterstützt kein HTML5-Audio.
     </audio>
