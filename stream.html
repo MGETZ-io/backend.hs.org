@@ -1,113 +1,56 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>BigTimeFM – Jetzt live</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- BigTimeFM Default CSS -->
+  <link rel="stylesheet" href="https://bigtimefm.de/assets/default.css?v=1.63" />
+
   <style>
-    :root {
-      --bg: #111;
-      --card: #1e1e1e;
-      --accent: #ff7f00;
-      --text: #f1f1f1;
-      --muted: #aaa;
-    }
-
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 30px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 700px;
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 25px 30px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-      margin-bottom: 30px;
-    }
-
-    h1 {
-      color: var(--accent);
-      font-size: 1.8em;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .info {
-      margin: 10px 0;
-    }
-
-    .label {
-      color: var(--muted);
-      display: inline-block;
-      min-width: 140px;
-    }
-
-    .value {
-      font-weight: 500;
-    }
-
-    .live-banner {
-      background: var(--accent);
-      color: #000;
-      font-weight: bold;
-      padding: 6px 12px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-bottom: 12px;
-    }
-
-    audio {
-      width: 100%;
-      margin-top: 10px;
-      border-radius: 8px;
-    }
-
-    @media(max-width: 500px) {
-      .label { min-width: auto; display: block; }
+    /* Bild ausblenden */
+    .sendeplan-image {
+      display: none !important;
+      visibility: hidden !important;
+      width: 0 !important;
+      height: 0 !important;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
+  <div id="content" class="container">
 
-    <!-- Live-Radio Infos -->
-    <div class="card">
-      <h1>🎧 Live-Status</h1>
-      <div class="info"><span class="label">📻 Sendethema:</span> <span class="value" id="broadcast_title">Lade...</span></div>
-      <div class="info"><span class="label">👤 Aktueller DJ:</span> <span class="value" id="currentdj">Lade...</span></div>
-      <div class="info"><span class="label">🎵 Aktueller Song:</span> <span class="value" id="songtitle">Lade...</span></div>
-    </div>
+    <h1>🎧 Live-Status</h1>
+    <dl class="dt-list">
+      <dt>📻 Sendethema:</dt>
+      <dd id="broadcast_title">Lade...</dd>
+      <dt>👤 Aktueller DJ:</dt>
+      <dd id="currentdj">Lade...</dd>
+      <dt>🎵 Aktueller Song:</dt>
+      <dd id="songtitle">Lade...</dd>
+    </dl>
 
-    <!-- Geplanter Slot -->
-    <div class="card">
-      <h1>📅 Sendeplan (Jetzt/Nächste)</h1>
-      <div id="livebanner" style="display:none;" class="live-banner">🔴 Jetzt LIVE ON AIR – BIGTIMEFM</div>
-      <div class="info"><span class="label">🕒 Zeit:</span> <span class="value" id="slot_time">Lade...</span></div>
-      <div class="info"><span class="label">📻 Titel:</span> <span class="value" id="slot_title">Lade...</span></div>
-      <div class="info"><span class="label">🎙️ DJ:</span> <span class="value" id="slot_dj">Lade...</span></div>
-    </div>
+    <h1>📅 Sendeplan (Jetzt/Nächste)</h1>
+    <div id="livebanner" class="live" style="display:none;">🔴 Jetzt LIVE ON AIR – BIGTIMEFM</div>
+    <dl class="dt-list">
+      <dt>🕒 Zeit:</dt>
+      <dd id="slot_time">Lade...</dd>
+      <dt>📻 Titel:</dt>
+      <dd id="slot_title">Lade...</dd>
+      <dt>🎙️ DJ:</dt>
+      <dd id="slot_dj">Lade...</dd>
+    </dl>
 
-    <!-- Audio-Player -->
-    <div class="card">
-      <h1>📡 Live-Stream</h1>
-      <audio controls autoplay>
-        <source src="https://stream.bigtimefm.de/stream.mp3" type="audio/mpeg">
-        Dein Browser unterstützt kein HTML5-Audio.
-      </audio>
-    </div>
+    <!-- Bild wird ausgeblendet -->
+    <!-- <img src="https://backend.bigtimefm.de/api/?output=coverimg" class="sendeplan-image" alt="Coverbild" /> -->
+
+    <h1>📡 Live-Stream</h1>
+    <audio controls autoplay>
+      <source src="https://stream.bigtimefm.de/stream.mp3" type="audio/mpeg" />
+      Dein Browser unterstützt kein HTML5-Audio.
+    </audio>
 
   </div>
 
@@ -135,10 +78,11 @@
             document.getElementById('slot_time').textContent = 'Keine Daten';
             document.getElementById('slot_title').textContent = 'Keine Daten';
             document.getElementById('slot_dj').textContent = 'Keine Daten';
+            document.getElementById('livebanner').style.display = 'none';
             return;
           }
 
-          const slot = data[0]; // nur 1 Slot wird zurückgegeben
+          const slot = data[0]; // Erster Slot aus API
           const now = new Date();
           const [startH, startM] = slot.start.split(':').map(Number);
           const [endH, endM] = slot.ende.split(':').map(Number);
@@ -154,7 +98,7 @@
           document.getElementById('slot_time').textContent = `${slot.start} – ${slot.ende}`;
           document.getElementById('slot_title').textContent = slot.titel || 'Unbekannt';
           document.getElementById('slot_dj').textContent = slot.dj || 'Unbekannt';
-          document.getElementById('livebanner').style.display = isLive ? 'inline-block' : 'none';
+          document.getElementById('livebanner').style.display = isLive ? 'block' : 'none';
         })
         .catch(() => {
           document.getElementById('slot_time').textContent = 'Fehler';
@@ -164,11 +108,11 @@
         });
     }
 
-    // Initiale Ladung
+    // Initiale Daten laden
     fetchLiveRadioStatus();
     fetchAktuellerSlot();
 
-    // Aktualisiere alle 30 Sekunden
+    // Alle 30 Sekunden aktualisieren
     setInterval(() => {
       fetchLiveRadioStatus();
       fetchAktuellerSlot();
@@ -177,4 +121,3 @@
 
 </body>
 </html>
-
