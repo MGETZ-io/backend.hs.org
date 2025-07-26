@@ -3,282 +3,237 @@
 <head>
   <meta charset="UTF-8" />
   <title>BigTimeFM – Live</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- BigTimeFM Design -->
-  <link rel="stylesheet" href="https://bigtimefm.de/assets/default.css?v=1.63">
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-
+  <!-- Schriftart direkt eingebunden -->
   <style>
+    @font-face {
+      font-family: 'PoppinsCustom';
+      src: url('https://fonts.gstatic.com/s/poppins/v23/pxiByp8kv8JHgFVrLCz7Z1xlFQ.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     body {
-      background-color: #0e0e0e;
-      color: #fff;
-      font-family: 'Open Sans', sans-serif;
+      font-family: 'PoppinsCustom', sans-serif;
+      background-color: #111;
+      color: #f1f1f1;
       margin: 0;
-      padding: 0;
+      padding: 20px;
     }
 
-    .content {
-      max-width: 900px;
+    .container {
+      max-width: 1200px;
       margin: auto;
-      padding: 2rem;
     }
 
-    .section {
-      margin-bottom: 3rem;
-      background-color: #1a1a1a;
-      padding: 1.5rem;
-      border-radius: 10px;
+    .card {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 
-    h2 {
-      font-size: 1.6rem;
-      color: #f24859;
-      margin-bottom: 1rem;
+    h1 {
+      color: #ff7f00;
+      margin-bottom: 16px;
     }
 
-    .info-line {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.75rem;
-      border-bottom: 1px solid #333;
-      padding-bottom: 0.4rem;
+    .info span {
+      display: block;
+      margin: 5px 0;
     }
 
-    .info-label {
-      font-weight: 600;
-      color: #ccc;
+    .label {
+      font-weight: bold;
+      color: #aaa;
     }
 
-    .info-value {
+    .value {
       color: #fff;
-      text-align: right;
+    }
+
+    .live-banner {
+      background: #ff7f00;
+      color: #000;
+      font-weight: bold;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 12px;
     }
 
     .custom-player {
-      background: #111;
-      padding: 1rem;
+      background: #222;
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      padding: 10px;
     }
 
-    .custom-player button {
-      background: #f24859;
-      border: none;
-      color: white;
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .progress {
-      flex: 1;
-      height: 5px;
-      background: #444;
-      margin: 0 1rem;
-      border-radius: 3px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .progress-bar {
-      background: #f24859;
-      height: 100%;
-      width: 0%;
-      transition: width 0.3s ease;
+    audio {
+      width: 100%;
+      border-radius: 6px;
     }
 
     .tracklist-item {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid #333;
+      background: #1b1b1b;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      padding: 10px;
     }
 
     .tracklist-item img {
-      width: 50px;
       height: 50px;
-      border-radius: 5px;
+      width: 50px;
       object-fit: cover;
+      border-radius: 4px;
+      margin-right: 12px;
     }
 
-    .track-info {
-      flex: 1;
+    .tracklist-info {
+      display: flex;
+      flex-direction: column;
     }
 
-    .track-title {
-      font-weight: 600;
+    .tracklist-title {
+      font-weight: bold;
+      color: #fff;
     }
 
-    .track-time {
+    .tracklist-time {
       color: #aaa;
-      font-size: 0.85rem;
+      font-size: 0.9em;
     }
 
-    .coverimg,
-    img[src*="coverimg"] {
-      display: none !important;
+    .week-day {
+      color: #ff7f00;
+      margin-top: 15px;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+
+    .no-slot {
+      color: #aaa;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
-
-  <div class="content">
-
-    <!-- Aktueller Stream -->
-    <div class="section">
-      <h2>📻 Jetzt auf BigTimeFM</h2>
-
-      <div class="info-line">
-        <div class="info-label">Sendung</div>
-        <div class="info-value" id="broadcast_title">Lade...</div>
-      </div>
-
-      <div class="info-line">
-        <div class="info-label">DJ</div>
-        <div class="info-value" id="currentdj">Lade...</div>
-      </div>
-
-      <div class="info-line">
-        <div class="info-label">Titel</div>
-        <div class="info-value" id="songtitle">Lade...</div>
+  <div class="container">
+    <!-- DJ Infos -->
+    <div class="card">
+      <h1>🎧 Live-Status</h1>
+      <div class="info">
+        <span><span class="label">📻 Sendethema:</span> <span class="value" id="broadcast_title">Lade...</span></span>
+        <span><span class="label">👤 Aktueller DJ:</span> <span class="value" id="currentdj">Lade...</span></span>
+        <span><span class="label">🎵 Aktueller Song:</span> <span class="value" id="songtitle">Lade...</span></span>
       </div>
     </div>
 
-    <!-- Player -->
-    <div class="section">
-      <h2>🔊 Live-Player</h2>
-      <div class="custom-player">
-        <button id="playPauseBtn">Play</button>
-        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-      </div>
-      <audio id="audio" src="https://stream.bigtimefm.de/stream.mp3"></audio>
+    <!-- Audio Player -->
+    <div class="card custom-player">
+      <h1>📡 Livestream</h1>
+      <audio controls autoplay>
+        <source src="https://stream.bigtimefm.de/stream.mp3" type="audio/mpeg" />
+        Dein Browser unterstützt kein HTML5-Audio.
+      </audio>
     </div>
 
     <!-- Sendeplan -->
-    <div class="section">
-      <h2>📅 Sendeplan</h2>
-
-      <div class="info-line">
-        <div class="info-label">Zeit</div>
-        <div class="info-value" id="slot_time">Lade...</div>
-      </div>
-
-      <div class="info-line">
-        <div class="info-label">Sendung</div>
-        <div class="info-value" id="slot_title">Lade...</div>
-      </div>
-
-      <div class="info-line">
-        <div class="info-label">DJ</div>
-        <div class="info-value" id="slot_dj">Lade...</div>
-      </div>
+    <div class="card">
+      <h1>📅 Sendeplan (Woche)</h1>
+      <div id="sendeplan_content">Lade...</div>
     </div>
 
     <!-- Tracklist -->
-    <div class="section">
-      <h2>🎶 Letzte Tracks</h2>
-      <div id="tracklist">
-        <div>Lade Tracklist...</div>
-      </div>
+    <div class="card">
+      <h1>📝 Gespielte Titel</h1>
+      <div id="tracklist">Lade...</div>
     </div>
-
   </div>
 
   <script>
-    const audio = document.getElementById("audio");
-    const playPauseBtn = document.getElementById("playPauseBtn");
-    const progressBar = document.getElementById("progressBar");
-
-    let playing = false;
-
-    playPauseBtn.addEventListener("click", () => {
-      if (playing) {
-        audio.pause();
-        playPauseBtn.textContent = "Play";
-      } else {
-        audio.play();
-        playPauseBtn.textContent = "Pause";
-      }
-      playing = !playing;
-    });
-
-    audio.addEventListener("timeupdate", () => {
-      if (audio.duration > 0) {
-        const percent = (audio.currentTime / audio.duration) * 100;
-        progressBar.style.width = percent + "%";
-      }
-    });
-
-    function updateLiveData() {
-      fetch("https://backend.bigtimefm.de/api/index.php?output=radiostatus")
+    function fetchLiveRadioStatus() {
+      fetch('https://backend.bigtimefm.de/api/index.php?output=radiostatus')
         .then(res => res.json())
         .then(data => {
-          document.getElementById("broadcast_title").textContent = data.broadcast_title || "Keine Info";
-          document.getElementById("currentdj").textContent = data.currentdj || "Unbekannt";
-          document.getElementById("songtitle").textContent = data.songtitle || "Nicht verfügbar";
+          document.getElementById('broadcast_title').textContent = data.broadcast_title || 'Keine Angabe';
+          document.getElementById('currentdj').textContent = data.currentdj || 'Unbekannt';
+          document.getElementById('songtitle').textContent = data.songtitle || 'Nicht verfügbar';
         });
     }
 
-    function updateSendeplan() {
-      fetch("https://backend.bigtimefm.de/api/index.php?output=sendeplan")
+    function fetchTracklist() {
+      fetch('https://backend.bigtimefm.de/api/tracklist.php')
         .then(res => res.json())
         .then(data => {
-          if (!data || !data[0]) {
-            document.getElementById("slot_time").textContent = "Keine Einträge";
-            document.getElementById("slot_title").textContent = "-";
-            document.getElementById("slot_dj").textContent = "-";
-            return;
-          }
-
-          const s = data[0];
-          document.getElementById("slot_time").textContent = `${s.start} – ${s.ende}`;
-          document.getElementById("slot_title").textContent = s.titel || "Unbekannt";
-          document.getElementById("slot_dj").textContent = s.dj || "Unbekannt";
-        });
-    }
-
-    function updateTracklist() {
-      fetch("https://backend.bigtimefm.de/api/tracklist.php")
-        .then(res => res.json())
-        .then(data => {
-          const tracklistDiv = document.getElementById("tracklist");
-          tracklistDiv.innerHTML = "";
-
-          if (!data || data.length === 0) {
-            tracklistDiv.innerHTML = "<div>Keine Songs verfügbar.</div>";
-            return;
-          }
-
-          data.forEach(track => {
-            const div = document.createElement("div");
-            div.className = "tracklist-item";
-            div.innerHTML = `
-              <img src="${track.cover}" alt="Cover">
-              <div class="track-info">
-                <div class="track-title">${track.title}</div>
-                <div class="track-time">${track.time}</div>
+          const container = document.getElementById('tracklist');
+          container.innerHTML = '';
+          data.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'tracklist-item';
+            el.innerHTML = `
+              <img src="${item.cover}" alt="Cover">
+              <div class="tracklist-info">
+                <div class="tracklist-title">${item.title}</div>
+                <div class="tracklist-time">${item.time}</div>
               </div>
             `;
-            tracklistDiv.appendChild(div);
+            container.appendChild(el);
           });
         });
     }
 
-    updateLiveData();
-    updateSendeplan();
-    updateTracklist();
+    function fetchWeeklySendeplan() {
+      fetch('https://backend.bigtimefm.de/api/sendeplan.php')
+        .then(res => res.json())
+        .then(data => {
+          const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+          const container = document.getElementById('sendeplan_content');
+          container.innerHTML = '';
 
+          days.forEach(day => {
+            const entries = data[day] || [];
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'week-day';
+            dayHeader.textContent = day;
+            container.appendChild(dayHeader);
+
+            if (entries.length === 0) {
+              const noData = document.createElement('div');
+              noData.className = 'no-slot';
+              noData.textContent = 'Es ist für den ausgewählten Tag keine Sendung eingetragen.';
+              container.appendChild(noData);
+            } else {
+              entries.forEach(slot => {
+                const slotEl = document.createElement('div');
+                slotEl.className = 'info';
+                slotEl.innerHTML = `
+                  <span><span class="label">🕒 ${slot.start} – ${slot.ende}</span></span>
+                  <span><span class="label">📻 ${slot.titel}</span></span>
+                  <span><span class="label">🎙️ ${slot.dj}</span></span>
+                  <br />
+                `;
+                container.appendChild(slotEl);
+              });
+            }
+          });
+        });
+    }
+
+    // Initiale Ladung
+    fetchLiveRadioStatus();
+    fetchTracklist();
+    fetchWeeklySendeplan();
+
+    // Alle 30 Sekunden aktualisieren
     setInterval(() => {
-      updateLiveData();
-      updateSendeplan();
-      updateTracklist();
+      fetchLiveRadioStatus();
+      fetchTracklist();
+      fetchWeeklySendeplan();
     }, 30000);
   </script>
-
 </body>
 </html>
