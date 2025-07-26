@@ -1,41 +1,50 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Discord Login Weiterleitung...</title>
+  <meta charset="UTF-8" />
+  <title>Discord Login Redirect</title>
 </head>
-<body style="background-color: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding-top: 50px;">
-  <h2>Authentifizierung läuft...</h2>
+<body>
+  <p>Logge dich ein…</p>
   <script>
-    async function fetchUserInfo(token) {
+    async function main() {
+      const hash = new URLSearchParams(window.location.hash.substr(1));
+      const token = hash.get('access_token');
+
+      if (!token) {
+        document.body.innerHTML = "Fehler: Kein Access Token erhalten.";
+        return;
+      }
+
       const response = await fetch('https://discord.com/api/users/@me', {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      return await response.json();
-    }
 
-    async function handleRedirect() {
-      const hash = new URLSearchParams(window.location.hash.substr(1));
-      const token = hash.get('access_token');
-
-      if (!token) {
-        document.body.innerHTML = "<h2>Fehler beim Login. Kein Token gefunden.</h2>";
+      if (!response.ok) {
+        document.body.innerHTML = "Fehler beim Abrufen der Benutzerinformationen.";
         return;
       }
 
-      const user = await fetchUserInfo(token);
-      if (!user || !user.id) {
-        document.body.innerHTML = "<h2>Nutzerinfo konnte nicht geladen werden.</h2>";
-        return;
-      }
-
+      const user = await response.json();
       const userId = user.id;
-      window.location.href = `https://backend.hustensaft.org/stream.html?2956`;
+
+      // Erlaubte User-IDs
+      const allowedUserIds = [
+        '1027882919798263839',
+        '1332785682095145150'
+      ];
+
+      if (allowedUserIds.includes(userId)) {
+        // Weiterleitung mit User-ID
+        window.location.href = `https://backend.hustensaft.org?key=?key=2956`;
+      } else {
+        document.body.innerHTML = "Zugriff verweigert: Du hast keine Berechtigung für diese Seite.";
+      }
     }
 
-    handleRedirect();
+    main();
   </script>
 </body>
 </html>
