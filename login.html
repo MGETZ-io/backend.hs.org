@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BTFM Tower Login</title>
 <style>
-  * {
-    box-sizing: border-box;
-  }
   body, html {
     margin: 0; padding: 0; height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -61,16 +58,15 @@
   <div class="left"></div>
   <div class="right">
     <h1>BTFM Tower</h1>
-    <a href="#" id="discord-login" class="discord-btn">Mit Discord einloggen</a>
+    <a id="discord-login" class="discord-btn" href="#">Mit Discord einloggen</a>
   </div>
 </div>
 
 <script>
-  // Discord OAuth 2.0 Daten
   const clientId = '1398608131885633638';
   const redirectUri = encodeURIComponent('https://backend.hustensaft.org/callback.html');
-  const scope = encodeURIComponent('identify email'); // Anpassen falls weitere scopes benötigt werden
-  const responseType = 'code';
+  const scope = encodeURIComponent('identify email');
+  const responseType = 'token'; // wichtig für Implicit Grant Flow
   const discordOAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
 
   document.getElementById('discord-login').href = discordOAuthUrl;
