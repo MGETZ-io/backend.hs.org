@@ -2,132 +2,169 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>BigTimeFM – Jetzt live</title>
+  <title>BigTimeFM – Live</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
-
-  <!-- BigTimeFM Default CSS -->
-  <link rel="stylesheet" href="https://bigtimefm.de/assets/default.css?v=1.63" />
+  <!-- BigTimeFM Design -->
+  <link rel="stylesheet" href="https://bigtimefm.de/assets/default.css?v=1.63">
 
   <style>
-    /* Bild ausblenden */
-    .sendeplan-image {
-      display: none !important;
-      visibility: hidden !important;
-      width: 0 !important;
-      height: 0 !important;
+    body {
+      background-color: #0e0e0e;
+      color: #fff;
+      font-family: 'Open Sans', sans-serif;
+      margin: 0;
+      padding: 0;
     }
+
+    .content {
+      max-width: 900px;
+      margin: auto;
+      padding: 2rem;
+    }
+
+    .section {
+      margin-bottom: 3rem;
+      background-color: #1a1a1a;
+      padding: 1.5rem;
+      border-radius: 10px;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      color: #f24859;
+      margin-bottom: 1rem;
+    }
+
+    .info-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid #333;
+      padding-bottom: 0.4rem;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #ccc;
+    }
+
+    .info-value {
+      color: #fff;
+      text-align: right;
+    }
+
+    .player-container {
+      margin-top: 3rem;
+      text-align: center;
+    }
+
+    audio {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    /* Coverbild ausblenden */
+    .coverimg,
+    img[src*="coverimg"] {
+      display: none !important;
+    }
+
   </style>
 </head>
 <body>
 
-  <div class="container my-4">
+  <div class="content">
 
-    <h1 class="mb-4">🎧 Live-Status</h1>
-    <dl class="row">
-      <dt class="col-sm-3">📻 Sendethema:</dt>
-      <dd class="col-sm-9" id="broadcast_title">Lade...</dd>
+    <!-- Aktueller Stream -->
+    <div class="section">
+      <h2>📻 Jetzt auf BigTimeFM</h2>
 
-      <dt class="col-sm-3">👤 Aktueller DJ:</dt>
-      <dd class="col-sm-9" id="currentdj">Lade...</dd>
+      <div class="info-line">
+        <div class="info-label">Sendung</div>
+        <div class="info-value" id="broadcast_title">Lade...</div>
+      </div>
 
-      <dt class="col-sm-3">🎵 Aktueller Song:</dt>
-      <dd class="col-sm-9" id="songtitle">Lade...</dd>
-    </dl>
+      <div class="info-line">
+        <div class="info-label">DJ</div>
+        <div class="info-value" id="currentdj">Lade...</div>
+      </div>
 
-    <h1 class="mt-5 mb-4">📅 Sendeplan (Jetzt/Nächste)</h1>
-    <div id="livebanner" class="alert alert-danger font-weight-bold text-center" style="display:none;">
-      🔴 Jetzt LIVE ON AIR – BIGTIMEFM
+      <div class="info-line">
+        <div class="info-label">Titel</div>
+        <div class="info-value" id="songtitle">Lade...</div>
+      </div>
     </div>
 
-    <dl class="row">
-      <dt class="col-sm-3">🕒 Zeit:</dt>
-      <dd class="col-sm-9" id="slot_time">Lade...</dd>
+    <!-- Aktueller oder nächster Sendeplan -->
+    <div class="section">
+      <h2>📅 Sendeplan</h2>
 
-      <dt class="col-sm-3">📻 Titel:</dt>
-      <dd class="col-sm-9" id="slot_title">Lade...</dd>
+      <div class="info-line">
+        <div class="info-label">Zeit</div>
+        <div class="info-value" id="slot_time">Lade...</div>
+      </div>
 
-      <dt class="col-sm-3">🎙️ DJ:</dt>
-      <dd class="col-sm-9" id="slot_dj">Lade...</dd>
-    </dl>
+      <div class="info-line">
+        <div class="info-label">Sendung</div>
+        <div class="info-value" id="slot_title">Lade...</div>
+      </div>
 
-    <!-- Bild wird ausgeblendet -->
-    <!-- <img src="https://backend.bigtimefm.de/api/?output=coverimg" class="sendeplan-image" alt="Coverbild" /> -->
+      <div class="info-line">
+        <div class="info-label">DJ</div>
+        <div class="info-value" id="slot_dj">Lade...</div>
+      </div>
+    </div>
 
-    <h1 class="mt-5 mb-4">📡 Live-Stream</h1>
-    <audio controls autoplay class="w-100">
-      <source src="https://stream.bigtimefm.de/stream.mp3" type="audio/mpeg" />
-      Dein Browser unterstützt kein HTML5-Audio.
-    </audio>
+    <!-- Player -->
+    <div class="player-container">
+      <h2>🔊 Live-Stream</h2>
+      <audio controls autoplay>
+        <source src="https://stream.bigtimefm.de/stream.mp3" type="audio/mpeg">
+        Dein Browser unterstützt kein HTML5-Audio.
+      </audio>
+    </div>
 
   </div>
 
   <script>
-    function fetchLiveRadioStatus() {
-      fetch('https://backend.bigtimefm.de/api/index.php?output=radiostatus')
+    function updateLiveData() {
+      fetch("https://backend.bigtimefm.de/api/index.php?output=radiostatus")
         .then(res => res.json())
         .then(data => {
-          document.getElementById('broadcast_title').textContent = data.broadcast_title || 'Keine Angabe';
-          document.getElementById('currentdj').textContent = data.currentdj || 'Unbekannt';
-          document.getElementById('songtitle').textContent = data.songtitle || 'Nicht verfügbar';
-        })
-        .catch(() => {
-          document.getElementById('broadcast_title').textContent = 'Fehler';
-          document.getElementById('currentdj').textContent = 'Fehler';
-          document.getElementById('songtitle').textContent = 'Fehler';
+          document.getElementById("broadcast_title").textContent = data.broadcast_title || "Keine Info";
+          document.getElementById("currentdj").textContent = data.currentdj || "Unbekannt";
+          document.getElementById("songtitle").textContent = data.songtitle || "Nicht verfügbar";
         });
     }
 
-    function fetchAktuellerSlot() {
-      fetch('https://backend.bigtimefm.de/api/index.php?output=sendeplan')
+    function updateSendeplan() {
+      fetch("https://backend.bigtimefm.de/api/index.php?output=sendeplan")
         .then(res => res.json())
         .then(data => {
-          if (!Array.isArray(data) || data.length === 0) {
-            document.getElementById('slot_time').textContent = 'Keine Daten';
-            document.getElementById('slot_title').textContent = 'Keine Daten';
-            document.getElementById('slot_dj').textContent = 'Keine Daten';
-            document.getElementById('livebanner').style.display = 'none';
+          if (!data || !data[0]) {
+            document.getElementById("slot_time").textContent = "Keine Einträge";
+            document.getElementById("slot_title").textContent = "-";
+            document.getElementById("slot_dj").textContent = "-";
             return;
           }
 
-          const slot = data[0]; // Erster Slot aus API
-          const now = new Date();
-          const [startH, startM] = slot.start.split(':').map(Number);
-          const [endH, endM] = slot.ende.split(':').map(Number);
-
-          const startTime = new Date(now);
-          startTime.setHours(startH, startM, 0, 0);
-
-          const endTime = new Date(now);
-          endTime.setHours(endH, endM, 0, 0);
-
-          const isLive = now >= startTime && now <= endTime;
-
-          document.getElementById('slot_time').textContent = `${slot.start} – ${slot.ende}`;
-          document.getElementById('slot_title').textContent = slot.titel || 'Unbekannt';
-          document.getElementById('slot_dj').textContent = slot.dj || 'Unbekannt';
-          document.getElementById('livebanner').style.display = isLive ? 'block' : 'none';
-        })
-        .catch(() => {
-          document.getElementById('slot_time').textContent = 'Fehler';
-          document.getElementById('slot_title').textContent = 'Fehler';
-          document.getElementById('slot_dj').textContent = 'Fehler';
-          document.getElementById('livebanner').style.display = 'none';
+          const s = data[0];
+          document.getElementById("slot_time").textContent = `${s.start} – ${s.ende}`;
+          document.getElementById("slot_title").textContent = s.titel || "Unbekannt";
+          document.getElementById("slot_dj").textContent = s.dj || "Unbekannt";
         });
     }
 
-    // Initiale Daten laden
-    fetchLiveRadioStatus();
-    fetchAktuellerSlot();
+    updateLiveData();
+    updateSendeplan();
 
-    // Alle 30 Sekunden aktualisieren
     setInterval(() => {
-      fetchLiveRadioStatus();
-      fetchAktuellerSlot();
+      updateLiveData();
+      updateSendeplan();
     }, 30000);
   </script>
 
 </body>
 </html>
+
