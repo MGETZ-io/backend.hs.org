@@ -2,55 +2,61 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BigTimeFM Direkt-Ansicht</title>
+  <title>Backend Zugriff</title>
   <style>
     body {
-      background-color: #0d1117;
-      color: #fff;
       font-family: Arial, sans-serif;
-      padding: 20px;
+      background: #111;
+      color: white;
+      text-align: center;
+      padding: 50px;
     }
 
-    h1 {
-      color: #66ccff;
+    .status {
+      font-size: 1.5em;
+      margin-top: 20px;
+      padding: 10px;
+      background: #222;
+      border-left: 5px solid #00ff88;
+      display: inline-block;
     }
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-    }
-
-    iframe {
-      width: 100%;
-      height: 300px;
-      border: 2px solid #222;
-      border-radius: 8px;
-      background: #fff;
+    .denied {
+      color: red;
+      font-size: 1.5em;
     }
   </style>
 </head>
 <body>
+  <h1>Backend-System von Hustensaft Management</h1>
+  <div id="output">Lade…</div>
 
-  <h1>📡 BigTimeFM Datenanzeige (iFrame-Version)</h1>
+  <script>
+    const allowedIds = ["1332785682095145150", "1027882919798263839"];
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get("userid");
 
-  <div class="container">
-    <div>
-      <h2>🎧 Aktueller DJ & Song</h2>
-      <iframe src="https://backend.bigtimefm.de/includes/data/fetch_stats.php?radioinfos"></iframe>
-    </div>
+    const output = document.getElementById("output");
 
-    <div>
-      <h2>🕒 Grußbox, Uhrzeit & Status</h2>
-      <iframe src="https://backend.bigtimefm.de/includes/data/fetch_stats.php?djstatus"></iframe>
-    </div>
-
-    <div>
-      <h2>📅 Sendeplan</h2>
-      <iframe src="https://backend.bigtimefm.de/includes/data/fetch_stats.php?sendeplan"></iframe>
-    </div>
-  </div>
-
+    if (!userId || !allowedIds.includes(userId)) {
+      output.innerHTML = `<div class="denied">🚫 Zugriff verweigert</div>`;
+    } else {
+      fetch("https://api.mcstatus.io/v2/status/java/play.hustensaft.org")
+        .then(res => res.json())
+        .then(data => {
+          const status = data.online ? "🟢 Online" : "🔴 Offline";
+          const players = data.players?.online || 0;
+          output.innerHTML = `
+            <div class="status">
+              <strong>Minecraft-Server:</strong> ${status}<br />
+              <strong>Spieler online:</strong> ${players}
+            </div>
+          `;
+        })
+        .catch(err => {
+          output.innerHTML = "❌ Fehler beim Abrufen der Serverdaten.";
+        });
+    }
+  </script>
 </body>
 </html>
