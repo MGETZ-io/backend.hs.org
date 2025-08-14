@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Backend Panel</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        height: 100vh;
+        background: #f4f4f4;
+    }
+    #sidebar {
+        width: 220px;
+        background: #222;
+        color: #fff;
+        padding-top: 20px;
+        display: none;
+        flex-shrink: 0;
+    }
+    #sidebar h2 {
+        text-align: center;
+        font-size: 18px;
+    }
+    #sidebar a {
+        display: block;
+        padding: 12px;
+        color: #fff;
+        text-decoration: none;
+        border-bottom: 1px solid #333;
+    }
+    #sidebar a:hover {
+        background: #444;
+    }
+    #main {
+        flex-grow: 1;
+        padding: 20px;
+    }
+    #login {
+        margin: auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px #ccc;
+    }
+    iframe {
+        width: 100%;
+        height: 90vh;
+        border: none;
+    }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>Backend Panel</h2>
+    <a href="#" onclick="showPage('start')">Startseite</a>
+    <a href="#" onclick="showPage('leitfaden')">Leitfaden</a>
+    <a href="#" onclick="showPage('server')">Server</a>
+    <a href="#" id="fahrBtn" style="display:none;" onclick="showPage('fahr')">Fahraufträge</a>
+    <a href="#" onclick="logout()">Logout</a>
+</div>
+
+<div id="main">
+    <div id="login">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Discord-Name"><br><br>
+        <input type="password" id="password" placeholder="Passwort"><br><br>
+        <button onclick="login()">Anmelden</button>
+        <p id="error" style="color:red;"></p>
+    </div>
+
+    <div id="content" style="display:none;">
+        <div id="startPage">
+            <h1>Willkommen</h1>
+            <p id="mcstatus">Lade Minecraft-Serverstatus...</p>
+        </div>
+        <div id="leitfadenPage" style="display:none;"></div>
+        <div id="serverPage" style="display:none;">
+            <h1>Server-Steuerung</h1>
+            <p>⚠️ Steuerung muss noch mit Aternos-API eingerichtet werden.</p>
+        </div>
+        <div id="fahrPage" style="display:none;">
+            <h1>Fahraufträge</h1>
+            <ul id="fahrList"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Nutzerliste: Name, Passwort, Rolle
+    const users = [
+        {name: "Maxim", password: "m", role: 5},
+        {name: "Lukas", password: "l", role: 0},
+        {name: "Tom", password: "t", role: 1}
+    ];
+
+    // Google Docs Links nach Rolle
+    const docs = {
+        1: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/preview",
+        2: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/preview",
+        3: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/preview",
+        4: "https://docs.google.com/document/d/12sE18a_Y0g_cr9T-MNfKtJxHbHyGM8z0VJxH_dOgJdQ/preview",
+    };
+
+    const docsList = [
+        {name: "Bau-Team-Leitung", link: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/edit"},
+        {name: "Discord-Moderatoren", link: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/edit"},
+        {name: "Head Admins", link: "https://docs.google.com/document/d/12sE18a_Y0g_cr9T-MNfKtJxHbHyGM8z0VJxH_dOgJdQ/edit"}
+    ];
+
+    function login() {
+        const name = document.getElementById("username").value;
+        const pass = document.getElementById("password").value;
+        const user = users.find(u => u.name === name && u.password === pass);
+        if (!user) {
+            document.getElementById("error").innerText = "Falscher Name oder Passwort";
+            return;
+        }
+        localStorage.setItem("role", user.role);
+        localStorage.setItem("username", user.name);
+        document.getElementById("login").style.display = "none";
+        document.getElementById("sidebar").style.display = "block";
+        document.getElementById("content").style.display = "block";
+        if (user.role === 0) document.getElementById("fahrBtn").style.display = "block";
+        loadMCStatus();
+    }
+
+    function logout() {
+        localStorage.clear();
+        location.reload();
+    }
+
+    function showPage(page) {
+        document.getElementById("startPage").style.display = "none";
+        document.getElementById("leitfadenPage").style.display = "none";
+        document.getElementById("serverPage").style.display = "none";
+        document.getElementById("fahrPage").style.display = "none";
+
+        if (page === "leitfaden") {
+            const role = parseInt(localStorage.getItem("role"));
+            const container = document.getElementById("leitfadenPage");
+            container.innerHTML = "";
+            if (role === 5) {
+                // Liste
+                docsList.forEach(doc => {
+                    const a = document.createElement("a");
+                    a.href = doc.link;
+                    a.target = "_blank";
+                    a.innerText = doc.name;
+                    container.appendChild(a);
+                    container.appendChild(document.createElement("br"));
+                });
+            } else if (docs[role]) {
+                container.innerHTML = `<iframe src="${docs[role]}"></iframe>`;
+            } else {
+                container.innerHTML = "<p>Kein Leitfaden verfügbar.</p>";
+            }
+        }
+
+        if (page === "fahr") {
+            const list = document.getElementById("fahrList");
+            list.innerHTML = "";
+            docsList.forEach(doc => {
+                const li = document.createElement("li");
+                const a = document.createElement("a");
+                a.href = doc.link;
+                a.target = "_blank";
+                a.innerText = doc.name;
+                li.appendChild(a);
+                list.appendChild(li);
+            });
+        }
+
+        document.getElementById(page + "Page").style.display = "block";
+    }
+
+    function loadMCStatus() {
+        fetch("https://api.mcsrvstat.us/2/play.hustensaft.org")
+            .then(res => res.json())
+            .then(data => {
+                if (data.online) {
+                    document.getElementById("mcstatus").innerText =
+                        `✅ Server online | Spieler: ${data.players.online}/${data.players.max}`;
+                } else {
+                    document.getElementById("mcstatus").innerText = "❌ Server offline";
+                }
+            })
+            .catch(() => {
+                document.getElementById("mcstatus").innerText = "⚠️ Status nicht abrufbar";
+            });
+    }
+</script>
+</body>
+</html>
