@@ -2,195 +2,192 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Backend Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hustensaft Backend Panel</title>
 <style>
     body {
         margin: 0;
         font-family: Arial, sans-serif;
+        background-color: #1e1e1e;
+        color: white;
         display: flex;
-        height: 100vh;
-        background: #f4f4f4;
     }
-    #sidebar {
+    /* Sidebar */
+    .sidebar {
         width: 220px;
+        background: #111;
+        height: 100vh;
+        padding: 20px 0;
+        position: fixed;
+        top: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .sidebar button {
         background: #222;
-        color: #fff;
-        padding-top: 20px;
-        display: none;
-        flex-shrink: 0;
-    }
-    #sidebar h2 {
-        text-align: center;
-        font-size: 18px;
-    }
-    #sidebar a {
-        display: block;
+        color: white;
+        border: none;
         padding: 12px;
-        color: #fff;
-        text-decoration: none;
-        border-bottom: 1px solid #333;
+        text-align: left;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
     }
-    #sidebar a:hover {
+    .sidebar button:hover {
         background: #444;
     }
-    #main {
-        flex-grow: 1;
+    /* Content */
+    .content {
+        margin-right: 220px;
         padding: 20px;
+        flex: 1;
     }
-    #login {
-        margin: auto;
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0px 0px 10px #ccc;
+    .hidden {
+        display: none;
     }
     iframe {
         width: 100%;
-        height: 90vh;
+        height: 80vh;
         border: none;
+        border-radius: 6px;
+        background: white;
+    }
+    .card {
+        background: #2c2c2c;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+    .badge {
+        padding: 5px 10px;
+        border-radius: 4px;
+        color: white;
+        font-size: 12px;
+    }
+    .online {
+        background: green;
+    }
+    .offline {
+        background: red;
     }
 </style>
 </head>
 <body>
 
-<div id="sidebar">
-    <h2>Backend Panel</h2>
-    <a href="#" onclick="showPage('start')">Startseite</a>
-    <a href="#" onclick="showPage('leitfaden')">Leitfaden</a>
-    <a href="#" onclick="showPage('server')">Server</a>
-    <a href="#" id="fahrBtn" style="display:none;" onclick="showPage('fahr')">Fahraufträge</a>
-    <a href="#" onclick="logout()">Logout</a>
+<div id="loginPage" class="content">
+    <h2>Login</h2>
+    <p>Bitte mit Discord-Namen und Passwort einloggen.</p>
+    <input type="text" id="username" placeholder="Discord Name"><br><br>
+    <input type="password" id="password" placeholder="Passwort"><br><br>
+    <button onclick="login()">Login</button>
+    <p id="loginError" style="color:red;"></p>
 </div>
 
-<div id="main">
-    <div id="login">
-        <h2>Login</h2>
-        <input type="text" id="username" placeholder="Discord-Name"><br><br>
-        <input type="password" id="password" placeholder="Passwort"><br><br>
-        <button onclick="login()">Anmelden</button>
-        <p id="error" style="color:red;"></p>
-    </div>
+<div id="panelPage" class="hidden content">
+    <h2>Willkommen, <span id="userDisplay"></span></h2>
+    <div id="mainContent"></div>
+</div>
 
-    <div id="content" style="display:none;">
-        <div id="startPage">
-            <h1>Willkommen</h1>
-            <p id="mcstatus">Lade Minecraft-Serverstatus...</p>
-        </div>
-        <div id="leitfadenPage" style="display:none;"></div>
-        <div id="serverPage" style="display:none;">
-            <h1>Server-Steuerung</h1>
-            <p>⚠️ Steuerung muss noch mit Aternos-API eingerichtet werden.</p>
-        </div>
-        <div id="fahrPage" style="display:none;">
-            <h1>Fahraufträge</h1>
-            <ul id="fahrList"></ul>
-        </div>
-    </div>
+<div id="sidebar" class="hidden sidebar">
+    <button onclick="showStart()">🏠 Startseite</button>
+    <button id="leitfadenBtn" class="hidden" onclick="showLeitfaden()">📄 Leitfaden</button>
+    <button id="fahrauftraegeBtn" class="hidden" onclick="showFahrauftraege()">🚌 Fahraufträge</button>
 </div>
 
 <script>
-    // Nutzerliste: Name, Passwort, Rolle
-    const users = [
-        {name: "Maxim", password: "m", role: 5},
-        {name: "Lukas", password: "l", role: 0},
-        {name: "Tom", password: "t", role: 1}
-    ];
+const users = [
+    { name: "Maxim", password: "pass123", role: 5 },
+    { name: "Lukas", password: "modpass", role: 2 },
+    { name: "Peter", password: "fahrerpass", role: 0 }
+];
 
-    // Google Docs Links nach Rolle
-    const docs = {
-        1: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/preview",
-        2: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/preview",
-        3: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/preview",
-        4: "https://docs.google.com/document/d/12sE18a_Y0g_cr9T-MNfKtJxHbHyGM8z0VJxH_dOgJdQ/preview",
-    };
+// Google Docs Links
+const leitfaeden = {
+    1: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/edit",
+    2: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/edit",
+    3: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/edit",
+    4: "https://docs.google.com/document/d/12sE18a_Y0g_cr9T-MNfKtJxHbHyGM8z0VJxH_dOgJdQ/edit"
+};
+const fahrauftraege = [
+    "https://docs.google.com/document/d/1example1/edit",
+    "https://docs.google.com/document/d/1example2/edit"
+];
 
-    const docsList = [
-        {name: "Bau-Team-Leitung", link: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/edit"},
-        {name: "Discord-Moderatoren", link: "https://docs.google.com/document/d/11j1MOWyH0TlsqH7BHEaI1hp0KZUWSJaGTUhaxPPJqTo/edit"},
-        {name: "Head Admins", link: "https://docs.google.com/document/d/12sE18a_Y0g_cr9T-MNfKtJxHbHyGM8z0VJxH_dOgJdQ/edit"}
-    ];
+let currentUser = null;
 
-    function login() {
-        const name = document.getElementById("username").value;
-        const pass = document.getElementById("password").value;
-        const user = users.find(u => u.name === name && u.password === pass);
-        if (!user) {
-            document.getElementById("error").innerText = "Falscher Name oder Passwort";
-            return;
+function login() {
+    const uname = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
+    const user = users.find(u => u.name === uname && u.password === pass);
+    if (!user) {
+        document.getElementById("loginError").innerText = "Falscher Name oder Passwort!";
+        return;
+    }
+    currentUser = user;
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("panelPage").classList.remove("hidden");
+    document.getElementById("sidebar").classList.remove("hidden");
+    document.getElementById("userDisplay").innerText = currentUser.name;
+
+    // Sidebar Rollen-Logik
+    if (currentUser.role >= 1 && currentUser.role <= 4) {
+        document.getElementById("leitfadenBtn").classList.remove("hidden");
+    }
+    if (currentUser.role === 0 || currentUser.role === 5) {
+        document.getElementById("fahrauftraegeBtn").classList.remove("hidden");
+    }
+    if (currentUser.role === 5) {
+        document.getElementById("leitfadenBtn").classList.remove("hidden");
+    }
+    showStart();
+}
+
+function showStart() {
+    fetch(`https://api.mcsrvstat.us/2/play.hustensaft.org`)
+        .then(res => res.json())
+        .then(data => {
+            let status = data.online 
+                ? `<span class="badge online">Online</span>` 
+                : `<span class="badge offline">Offline</span>`;
+            let players = data.online ? `${data.players.online}/${data.players.max}` : "0";
+            document.getElementById("mainContent").innerHTML = `
+                <div class="card">
+                    <h3>Minecraft Serverstatus</h3>
+                    <p>Status: ${status}</p>
+                    <p>Spieler online: ${players}</p>
+                </div>
+            `;
+        });
+}
+
+function showLeitfaden() {
+    if (currentUser.role === 5) {
+        // Liste aller Leitfäden
+        let html = "<h3>Alle Leitfäden</h3><ul>";
+        for (let r in leitfaeden) {
+            html += `<li><a href="${leitfaeden[r]}" target="_blank">Leitfaden Rolle ${r}</a></li>`;
         }
-        localStorage.setItem("role", user.role);
-        localStorage.setItem("username", user.name);
-        document.getElementById("login").style.display = "none";
-        document.getElementById("sidebar").style.display = "block";
-        document.getElementById("content").style.display = "block";
-        if (user.role === 0) document.getElementById("fahrBtn").style.display = "block";
-        loadMCStatus();
+        html += "</ul>";
+        document.getElementById("mainContent").innerHTML = html;
+    } else {
+        // Nur eigener Leitfaden im Embed
+        document.getElementById("mainContent").innerHTML = `
+            <iframe src="${leitfaeden[currentUser.role]}"></iframe>
+        `;
     }
+}
 
-    function logout() {
-        localStorage.clear();
-        location.reload();
-    }
-
-    function showPage(page) {
-        document.getElementById("startPage").style.display = "none";
-        document.getElementById("leitfadenPage").style.display = "none";
-        document.getElementById("serverPage").style.display = "none";
-        document.getElementById("fahrPage").style.display = "none";
-
-        if (page === "leitfaden") {
-            const role = parseInt(localStorage.getItem("role"));
-            const container = document.getElementById("leitfadenPage");
-            container.innerHTML = "";
-            if (role === 5) {
-                // Liste
-                docsList.forEach(doc => {
-                    const a = document.createElement("a");
-                    a.href = doc.link;
-                    a.target = "_blank";
-                    a.innerText = doc.name;
-                    container.appendChild(a);
-                    container.appendChild(document.createElement("br"));
-                });
-            } else if (docs[role]) {
-                container.innerHTML = `<iframe src="${docs[role]}"></iframe>`;
-            } else {
-                container.innerHTML = "<p>Kein Leitfaden verfügbar.</p>";
-            }
-        }
-
-        if (page === "fahr") {
-            const list = document.getElementById("fahrList");
-            list.innerHTML = "";
-            docsList.forEach(doc => {
-                const li = document.createElement("li");
-                const a = document.createElement("a");
-                a.href = doc.link;
-                a.target = "_blank";
-                a.innerText = doc.name;
-                li.appendChild(a);
-                list.appendChild(li);
-            });
-        }
-
-        document.getElementById(page + "Page").style.display = "block";
-    }
-
-    function loadMCStatus() {
-        fetch("https://api.mcsrvstat.us/2/play.hustensaft.org")
-            .then(res => res.json())
-            .then(data => {
-                if (data.online) {
-                    document.getElementById("mcstatus").innerText =
-                        `✅ Server online | Spieler: ${data.players.online}/${data.players.max}`;
-                } else {
-                    document.getElementById("mcstatus").innerText = "❌ Server offline";
-                }
-            })
-            .catch(() => {
-                document.getElementById("mcstatus").innerText = "⚠️ Status nicht abrufbar";
-            });
-    }
+function showFahrauftraege() {
+    let html = "<h3>Fahraufträge</h3><ul>";
+    fahrauftraege.forEach(link => {
+        html += `<li><a href="${link}" target="_blank">${link.split("/d/")[1].split("/")[0]}</a></li>`;
+    });
+    html += "</ul>";
+    document.getElementById("mainContent").innerHTML = html;
+}
 </script>
+
 </body>
 </html>
