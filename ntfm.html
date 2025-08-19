@@ -4,9 +4,21 @@
 <meta charset="UTF-8">
 <title>NextTimeFM Player</title>
 <style>
-  body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 50px; }
-  audio { margin-top: 20px; width: 300px; }
-  #info { margin-top: 15px; font-size: 1.2em; }
+  body {
+    font-family: sans-serif;
+    background: #111;
+    color: #fff;
+    text-align: center;
+    padding: 50px;
+  }
+  audio {
+    margin-top: 20px;
+    width: 300px;
+  }
+  #info {
+    margin-top: 15px;
+    font-size: 1.2em;
+  }
 </style>
 </head>
 <body>
@@ -18,11 +30,10 @@
   Dein Browser unterstützt keinen Audio-Player.
 </audio>
 
-<!-- Anzeige für DJ/Titel -->
+<!-- Anzeige für DJ, Songtitel und Sendethema -->
 <div id="info">Lade Infos...</div>
 
 <script>
-// Funktion zum Abrufen der aktuellen Info
 async function updateStatus() {
   try {
     const res = await fetch('http://5.39.63.207:2242/status-json.xsl');
@@ -32,8 +43,11 @@ async function updateStatus() {
     const stream = sources.find(s => s.listenurl.endsWith('/stream'));
     
     const infoDiv = document.getElementById('info');
-    if (stream && stream.title) {
-      infoDiv.textContent = `Jetzt spielt: ${stream.title}`;
+    if (stream) {
+      const dj = stream.server_name || "Unbekannt";
+      const thema = stream.server_description || "Kein Sendethema";
+      const song = stream.title || "Off Air";
+      infoDiv.textContent = `DJ: ${dj} | Titel: ${song} | Thema: ${thema}`;
     } else {
       infoDiv.textContent = "Off Air";
     }
