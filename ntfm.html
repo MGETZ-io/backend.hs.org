@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>NextTimeFM Player</title>
+<style>
+  body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 50px; }
+  audio { margin-top: 20px; width: 300px; }
+  #info { margin-top: 15px; font-size: 1.2em; }
+</style>
+</head>
+<body>
+<h1>NextTimeFM</h1>
+
+<!-- Audio-Player für /stream -->
+<audio id="player" controls autoplay>
+  <source src="http://5.39.63.207:2242/stream" type="audio/mpeg">
+  Dein Browser unterstützt keinen Audio-Player.
+</audio>
+
+<!-- Anzeige für DJ/Titel -->
+<div id="info">Lade Infos...</div>
+
+<script>
+// Funktion zum Abrufen der aktuellen Info
+async function updateStatus() {
+  try {
+    const res = await fetch('http://5.39.63.207:2242/status-json.xsl');
+    const data = await res.json();
+    
+    const sources = Array.isArray(data.icestats.source) ? data.icestats.source : [data.icestats.source];
+    const stream = sources.find(s => s.listenurl.endsWith('/stream'));
+    
+    const infoDiv = document.getElementById('info');
+    if (stream && stream.title) {
+      infoDiv.textContent = `Jetzt spielt: ${stream.title}`;
+    } else {
+      infoDiv.textContent = "Off Air";
+    }
+  } catch (e) {
+    console.error(e);
+    document.getElementById('info').textContent = "Server nicht erreichbar";
+  }
+}
+
+// Update alle 5 Sekunden
+setInterval(updateStatus, 5000);
+updateStatus();
+</script>
+</body>
+</html>
